@@ -93,7 +93,7 @@ async function respond(service, req) {
       });
       
     } else {
-      //Responsd with page.
+      //Respond with page.
       resp = await fetch(req);
       //Create a new response so that it is modifiable.
       resp = new Response(resp.body, resp);
