@@ -75,7 +75,7 @@ In a new Private Browsing window, visit the page on your site that matches the A
 
  - Verify that a cookie has been created named `QueueFair-Pass-queuename`, where queuename is the System Name of your queue
  - If the Adapter is in Safe mode (the default), also verify that a cookie has been created named QueueFair-Store-accountname, where accountname is the System Name of your account (on the Your Account page on the portal).
- - If you have set the Adapter to Simple mode as described below, the `QueueFair-Store` cookie is not created.
+ - If you have set the Adapter to Simple mode in the `config` section at the top of the worker code, the `QueueFair-Store` cookie is not created.
  - Hit Refresh.  Verify that the cookie(s) have not changed their values.
 
 #### Testing Queue
