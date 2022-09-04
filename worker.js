@@ -26,6 +26,8 @@ readTimeout : 5,
 // downloading a fresh copy. Set this to 0 if you are updating your settings in
 // the Queue-Fair Portal and want to test your changes quickly, but remember
 // to set it back to at least 5 again when you are finished to reduce CloudFlare costs.
+// NOTE: If you set this to one minute or less in a production environment, you will
+// exceed the CloudFlare free plan KV limit of 1000 writes per day!
 settingsCacheLifetimeMinutes : 5,
 
 // Whether or not to strip the Passed String from the URL
@@ -41,8 +43,16 @@ adapterMode : 'safe'
 
 };
 
-/************ You should only modify the below if you need to merge ******
- ************ the Queue-Fair worker with a pre-existing worker. *********/
+/****** You should only modify the below if you need to merge ******
+ ****** the Queue-Fair worker with a pre-existing worker. **********/
+
+async function getFromCloudFlareCacheOrOrigin(request) {
+  //If you already have Worker code that you need to merge,
+  //this is the place to call it.
+  
+  //Otherwise, get a response from the CloudFlare cache or origin.
+  return fetch(request);
+}
 
 addEventListener("fetch", (event) => { 
   if(!event.request || !event.request.url) {
@@ -53,6 +63,8 @@ addEventListener("fetch", (event) => {
     handleRequest(event.request)
   );
 });
+
+/****** You should not need to modify anything below this line ******/
 
 async function handleRequest(req) {
   try {
@@ -75,7 +87,7 @@ async function handleRequest(req) {
     console.log(err);
   }
   //If not intercepted get the (possibly cached) response from origin.
-  return fetch(req);
+  return getFromCloudFlareCacheOrOrigin(req);
 }
 
 async function respond(service, req) {
@@ -94,7 +106,7 @@ async function respond(service, req) {
       
     } else {
       //Respond with page.
-      resp = await fetch(req);
+      resp = await getFromCloudFlareCacheOrOrigin(req);
       //Create a new response so that it is modifiable.
       resp = new Response(resp.body, resp);
     }
@@ -122,11 +134,9 @@ async function respond(service, req) {
       console.log("QF ERROR PROCESSING RESPONSE");
       console.log(err);
       //Show page.
-      return fetch(req);
+      return getFromCloudFlareCacheOrOrigin(req);
   }
 }
-
-/********* You should not need to modify any of the below for any reason ******/
 
 const encoder = new TextEncoder();
 const compiledSecrets = [];
