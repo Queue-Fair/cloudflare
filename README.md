@@ -100,8 +100,6 @@ The CloudFlare Adapter contains multiple checks to prevent visitors bypassing th
 
 ## AND FINALLY
 
-If you already have a Worker that you are already using, then you will need to merge it with the code in worker.js.  You can do this in addEventListener instead of the supplied event.respondWith(), but if you do want Queue-Fair to protect a page, then addEventListener must call event.respondWith(handleRequest(event.request)) as shown.  You can put the hook into your worker code in respond(), in the section commented Respond with page - for example, instead of the await fetch(req) that appears there (which gets a page from the CloudFlare cache or your origin servers), you can call your Worker code instead.
+If you already have a Worker that you are already using, then you will need to merge it with the code in worker.js.  If you want to run your Worker code instead of the Adapter, do it in addEventListener.  This will mean the Adapter does not run when your Worker code is run, which is probably not what you want.  If you want to run your Worker code as well as the Queue-Fair Adapter - which means the Adapter protects your pages and worker and is probably what you want - call it from the getFromCloudFlareCacheOrOrigin(request) function where indicated.
 
 Remember we are here to help you! The integration process shouldn't take you more than an hour - so if you are scratching your head, ask us.  Many answers are contained in the Technical Guide too.  We're always happy to help!
-
-
