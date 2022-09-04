@@ -126,7 +126,7 @@ async function respond(service, req) {
         + (cookie.cookieDomain ? ";Domain="+cookieDomain : "")
         + (service.isSecure ?  ";Secure" : "")
         + (cookie.sameSite ?  ";SameSite=none" : "");
-      resp.headers.append("set-cookie",cname + "=" + header);
+      resp.headers.append("set-cookie",header);
     }
     
     return resp;
@@ -157,17 +157,20 @@ class QueueFairService {
     if(req.url.startsWith("https")) {
         this.isSecure = true;
     }
-    this.reqCookies = req.headers.get("Cookie");
+    this.reqCookies = req.headers.get("cookie");
     if(this.reqCookies == null) {
       this.reqCookies = {};
       return;
     }
-    this.reqCookies = this.reqCookies.split(';')
-    .map(v => v.split('='))
-    .reduce((acc, v) => {
-      acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
-      return acc;
-    }, {});
+    const inter = this.reqCookies.split(';');
+    this.reqCookies = {};
+    for(var i in inter) {
+        const str = inter[i];
+        const j = str.indexOf("=");
+        const cname = decodeURIComponent(str.substring(0,j).trim());
+        const cvalue = decodeURIComponent(str.substring(j+1).trim());
+        this.reqCookies[cname] = cvalue;
+    }
   }
 
   /**
@@ -499,8 +502,8 @@ class QueueFairAdapter {
    * @param {Object} queue json.
    * @return {boolean} whether further queues should be checked now.
    */
-  onMatch(queue) {
-    if (this.isPassed(queue)) {
+  async onMatch(queue) {
+    if (await this.isPassed(queue)) {
       if (this.d) this.log('Already passed '+queue.name+'.');
       if (this.extra == 'CLEAR') {
         const val=this.getCookie(QueueFairAdapter.cookieNameBase+queue.name);
@@ -523,7 +526,7 @@ class QueueFairAdapter {
    * @param {Object} queue json
    * @return {boolean} true if passed.
    */
-  isPassed(queue) {
+  async isPassed(queue) {
     if (this.passed[queue.name]) {
       if (this.d) this.log('Queue '+queue.name+' marked as passed already.');
       return true;
@@ -535,11 +538,11 @@ class QueueFairAdapter {
       return false;
     }
     if (!this.includes(queueCookie, queue.name)) {
-      if (this.d) this.log('Cookie value is invalid for '+queue.name);
+      if (this.d) this.log('Cookie value '+queueCookie+' is invalid for '+queue.name);
       return false;
     }
 
-    if (!this.validateCookieWithQueue(queue, queueCookie)) {
+    if (!await this.validateCookieWithQueue(queue, queueCookie)) {
       if (this.d) this.log('Cookie failed validation ' + queueCookie);
 
       this.setCookie(queue.name, '', 0, queue.cookieDomain);
@@ -596,13 +599,13 @@ class QueueFairAdapter {
 
 
   /** Called to validate a cookie.  May be called externally
-   * (Hybrid Security Model).
+   * (Hybrid Security Model).  MODIFIED async.
    * @param {Object} queue json
    * @param {string} cookie the cookie value to validate
    * @return {boolean} whether it's valid
    */
-  validateCookieWithQueue(queue, cookie) {
-    return this.validateCookie(queue.secret,
+  async validateCookieWithQueue(queue, cookie) {
+    return await this.validateCookie(queue.secret,
         queue.passedLifetimeMinutes, cookie);
   }
 
@@ -831,7 +834,7 @@ class QueueFairAdapter {
       QueueFairAdapter.lastMemSettingsRead = Date.now();
       json.stamp = QueueFairAdapter.lastMemSettingsRead;
       await QUEUE_FAIR_STORAGE.put("settings-"+this.config.account, JSON.stringify(json));
-      this.gotSettings(QueueFairAdapter.memSettings);
+      await this.gotSettings(QueueFairAdapter.memSettings);
     } catch (err) {
       this.releaseGetting();
       this.errorHandler(err);
@@ -851,7 +854,7 @@ class QueueFairAdapter {
       if (!this.continuePage) {
         return;
       }
-      this.parseSettings();
+      await this.parseSettings();
     } catch (err) {
       this.log('QF Error ');
       this.errorHandler(err);
@@ -859,8 +862,8 @@ class QueueFairAdapter {
   }
 
   /** Parses the settings to see if we have a match,
-   * and act upon any match found. */
-  parseSettings() {
+   * and act upon any match found.  MODIFIED async */
+  async parseSettings() {
     try {
       if (!this.settings) {
         if (this.d) this.log('ERROR: Settings not set.');
@@ -885,7 +888,7 @@ class QueueFairAdapter {
         if (this.d) this.log('Checking '+queue.displayName);
         if (this.isMatch(queue)) {
           if (this.d) this.log('Got a match '+queue.displayName);
-          if (!this.onMatch(queue)) {
+          if (!await this.onMatch(queue)) {
             if (this.consultingAdapter) {
               return;
             }
@@ -957,6 +960,8 @@ class QueueFairAdapter {
 
       if (this.d) this.log('Adapter URL ' + url);
       this.consultingAdapter = true;
+
+      //Does not require await as result unused.
       this.loadURL(url, (data) => this.gotAdapterStr(data));
       return;
     }
@@ -1046,18 +1051,18 @@ class QueueFairAdapter {
   /** Called in "safe" mode when an adapter call has returned content
    * @param {string} data the content.
    * */
-  gotAdapterStr(data) {
+  async gotAdapterStr(data) {
     this.consultingAdapter=false;
     try {
       this.adapterResult = JSON.parse(data);
-      this.gotAdapter();
+      await this.gotAdapter();
     } catch (err) {
       errorHandler(err);
     }
   }
 
   /** Called in "safe" mode when an adapter call has returned json */
-  gotAdapter() {
+  async gotAdapter() {
     try {
       if (this.d) {
         this.log('Got from adapter ' +
@@ -1117,7 +1122,7 @@ class QueueFairAdapter {
         if (this.d) this.log('CLEAR received for '+this.adapterResult.queue);
         this.passed[this.adapterResult.queue]=true;
         if (this.parsing) {
-          this.parseSettings();
+          await this.parseSettings();
         }
         return;
       }
@@ -1136,7 +1141,7 @@ class QueueFairAdapter {
       this.passed[this.adapterResult.queue]=true;
 
       if (this.parsing) {
-        this.parseSettings();
+        await this.parseSettings();
       }
     } catch (err) {
       if (this.d) this.log('QF Error '+err.message);
@@ -1183,7 +1188,7 @@ class QueueFairAdapter {
       if (pos == -1) {
         return;
       }
-      if (this.d) this.log('Striping passedString from URL');
+      if (this.d) this.log('Stripping passedString from URL');
       this.redirectLoc = loc.substring(0, pos - 1);
       this.redirect();
     }
@@ -1255,7 +1260,7 @@ class QueueFairAdapter {
           if(this.d) this.log("using settings from KV");
           QueueFairAdapter.memSettings = json;
           QueueFairAdapter.lastMemSettingsRead = Date.now();
-          this.gotSettings(QueueFairAdapter.memSettings);
+          await this.gotSettings(QueueFairAdapter.memSettings);
           return;
         }
         if(this.d) this.log("KV settings are too old");
@@ -1269,13 +1274,15 @@ class QueueFairAdapter {
         this.settingsCounter < this.config.readTimeout) {
       if (this.d) this.log('Waiting for settings.');
       this.settingsCounter++;
-      setTimeout(() =>
-        this.loadSettings(), 1000);
+      //Does not require await as result unused.
+      setTimeout(() => this.loadSettings(), 1000);
     }
 
     if (this.d) this.log('Downloading settings.');
     QueueFairAdapter.gettingSettings = true;
     this.thisIsGettingSettings = true;
+
+    //gotSettingsStr does not require await here as result unused.
     this.loadURL('https://files.queue-fair.net/' +
       this.config.account +
       '/' +
@@ -1486,6 +1493,7 @@ class QueueFairAdapter {
       this.timeout=setTimeout(() => {
         this.onTimeout();
       }, this.config.readTimeout*1000);
+      //Does not require await as returning a promise.
       this.goGetSettings();
     });
   }
@@ -1514,4 +1522,3 @@ class QueueFairAdapter {
     }
   }
 }
-
