@@ -39,6 +39,8 @@ stripPassedString : true,
 
 // Whether to send the visitor to the Adapter server for counting (simple mode),
 // or consult the Adapter server (safe mode).The recommended value is "safe".
+// If you change this to "simple", consider setting stripPassedString above to
+// false to make it easier for Google to crawl your pages.
 adapterMode : 'safe'
 
 };
