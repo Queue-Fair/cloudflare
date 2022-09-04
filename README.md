@@ -38,29 +38,31 @@ These instructions assume you already have a CloudFlare account with an origin w
 
 Here's how to add Queue-Fair to your CloudFlare implementation. 
 
-**1.** Download the latest release of this distribution and unzip it.  You only need one file, worker.js.
+**1.** Download the latest release of this distribution and unzip it.  You only need one file, `worker.js`.
 
-**2.** The Queue-Fair CloudFlare adapter uses KV storage for efficient operation.  To create the KV storage namespace that the Adapter will use, log in to CloudFlare.  Select Workers from the left nav.  If you've never set up a CloudFlare Worker before, you'll be asked to set up a custom Cloudflare Workers subdomain.  You can shoose any subdomain you like - the only requirement is that no-one else has the same subdomain.  So, if you are asked to set up a custom CloudFlare Workers subdomain, pick a subdomain and then Set Up, and you probably want the Free plan.  
+**2.** The Queue-Fair CloudFlare adapter uses KV storage for efficient operation.  To create the KV storage namespace that the Adapter will use, log in to CloudFlare.  Select **Workers** from the left nav.  If you've never set up a CloudFlare Worker before, you'll be asked to set up a custom Cloudflare Workers subdomain.  You can shoose any subdomain you like - the only requirement is that no-one else has the same subdomain.  So, if you are asked to set up a custom CloudFlare Workers subdomain, pick a subdomain and then **Set Up**, and you probably want the Free plan.  
 
-As soon as you see it in the left nav, Select KV from the left nav (it's underneath Workers->Overview), then the blue Create Namespace button.  You can call the namespace anything you like - these instructions assume you name it 'queue-fair'. Hit the blue Add button once you've entered a name.
+As soon as you see it in the left nav, select **KV** (it's underneath Workers->Overview), then the blue **Create Namespace** button.  You can call the namespace anything you like - these instructions assume you name it `queue-fair`. Hit the blue **Add** button once you've entered a name.
 
-**3.** Select Workers from the left nav again.  Hit the blue Create a Service button.  You can name the service anything you like - these instructions assume you name it 'queue-fair-adapter'.  You can select either of the starter options - it doesn't matter which.  Hit Create Service.
+**3.** Select **Workers** from the left nav again.  Hit the blue **Create a Service** button.  You can name the service anything you like - these instructions assume you name it `queue-fair-adapter`.  You can select either of the starter options - it doesn't matter which.  Hit **Create Service**.
 
-**4.** CloudFlare will create your new worker.  You'll start on the Resources tab.  Go to the Settings tab, then Variables on the left, scroll down to KV Namespace Bindings, Add Binding.  For Variable Name, this must be QUEUE_FAIR_STORAGE.  For KV Namespace, enter the name you chose in Step 2 (probably 'queue-fair').  Hit the blue Save button.
+**4.** CloudFlare will create your new worker.  You'll start on the **Resources** tab but there's nothing to do here yet.  Go to the **Settings** tab, then **Variables** on the left, scroll down to **KV Namespace Bindings** and hit **Add Binding**.  For Variable Name, this must be `QUEUE_FAIR_STORAGE`.  For KV Namespace, enter the name you chose in Step 2 (probably `queue-fair`).  Hit the blue **Save** button.
 
-**5.** Go back to the Resources tab.  Hit the blue Quick edit button. Copy and paste the contents of worker.js into the code editor on the left of the page, COMPLETELY REPLACING the few lines of code that are already there.  You can do this with CTRL-A to Select All and then CTRL-V to paste.
+**5.** Go back to the **Resources** tab.  Hit the blue **Quick edit** button. Copy and paste the contents of `worker.js` into the code editor on the left of the page, COMPLETELY REPLACING the few lines of code that are already there.  You can do this with CTRL-A to Select All and then CTRL-V to paste.
 
-**6.** Enter your Account Secret and Account System Name where indicated at the top of the pasted-in code.  Hit CTRL-S to save, then the Save and Deploy button in the dialog that appears. You have to hit CTRL-S and then Save and Deploy every time you finish making edits to the code in the window.
+**6.** Enter your Account Secret and Account System Name where indicated at the top of the pasted-in code.  Hit CTRL-S to save, then the **Save and Deploy** button in the dialog that appears. You have to hit CTRL-S and then **Save and Deploy** every time you finish making any edits to the code in the window.
 
-**7.** OPTIONAL If you want to test the Worker before making it live on your site (recommended), you can type the URL of a page on your site that matches your queue's Activation Rules in the box next to the GET pulldown in the HTTP tab, and hit Send.  You should see the response come back on the right with a set-cookie header containing Queue-Fair-Store-<system name of your queue>.  There should be no output in the Console unless you have set debug : true in the config code on the left.  Debug logging is disabled by default, and you should disable debug for live deployments.
+**7.** OPTIONAL If you want to test the Worker before making it live on your site (recommended), you can type the URL of a page on your site that matches your queue's Activation Rules in the box next to the **GET** pulldown in the **HTTP** tab, and hit **Send**.  You should see the response come back on the right with a set-cookie header containing `Queue-Fair-Store-<system name of your queue>`.  There should be no output in the **Console** unless you have set `debug : true` in the `config` code on the left.  Debug logging is disabled by default, and you should disable debug for live deployments.
 
-**8.** To make the Worker live on your site, use the back arrow at the top left, and select Websites from the left nav, and then your website.  In the left nav for your website, select Workers, then Add Route in HTTP Routes
+**8.** To make the Worker live on your site, use the **back arrow** at the top left, and select **Websites** from the left nav, and then your website (which we are calling `mysite.com` in these instructions).  In the left nav for your website, select **Workers**, then **Add Route** in **HTTP Routes**.
 
-**9.** OPTIONAL but strongly recommended.  The Adapter normally only runs on page requests, and not media or static assets like pngs, jpegs or css files.  If you have static assets in a folder on your site, it's best to exclude this folder (or folders) from the Worker.  For example, if your static assets are all under https://mysite.com/assets, add a Route *mysite.com/assets* with the Serice set to None.  This will exclude assets and any subfolders.  Hit Save when you are done with the Add route dialog.  The more folders you can exclude with routes, the less often the Adatper will run, and the less likely you are to exceed the CloudFlare Free plan limits.  You can have as many exclusion routes like this as you like, but unfortunately CloudFlare does not support exludes by file extension (.png, .jpeg, .css etc).   
+**9.** OPTIONAL but strongly recommended.  The Adapter normally only runs on page requests, and not media or static assets like pngs, jpegs or css files.  If you have static assets in a folder on your site, it's best to exclude this folder (or folders) from the Worker.  For example, if your static assets are all under https://mysite.com/assets, add a Route `*mysite.com/assets*` with the **Service** set to **None**.  This will exclude `assets` and any subfolders from your Worker.  Hit **Save** when you are done with the **Add route** dialog.  The more folders you can exclude with routes, the less often the Adatper will run, and the less likely you are to exceed the CloudFlare Free plan limits.  You can have as many exclusion routes like this as you like, but sadly CloudFlare does not support exludes by file extension (.png, .jpeg, .css etc).   
   
-**10.** To enable the Worker on your site, Add route, and it's *mysite.com/* for the Route, for Service it's whatever name you chose in Step 3 (probably 'queue-fair-adapter', Environment is Production, and we recommend you change Request limit failure mode from "Fail closed" to "Fail open" if you are on the Free Plan.  This will mean that if your 100,000 free worker requests per day quota is exeeded, your site will still display - it will just be unprotected by Queue-Fair once the limit is reached.
+**10.** To enable the Worker on your site, **Add route**, and it's `*mysite.com/*` for the Route, for **Service** it's whatever name you chose in Step 3 (probably `queue-fair-adapter`, **Environment** is `Production`, and we recommend you change **Request limit failure mode** from `Fail closed` to `Fail open` if you are on the CloudFlare Free plan.  This will mean that if your 100,000 free worker requests per day quota is exeeded, your site will still display - it will just be unprotected by Queue-Fair once the limit is reached.
   
-**11.** Hit Save when you are finished with the Add route dialog.  That's it, you're done!
+**11.** Hit **Save** when you are finished with the **Add route** dialog.  
+
+That's it, you're done!
 
 ### To test the CloudFlare Adapter
 
@@ -86,7 +88,7 @@ Go back to the Portal and put the queue in Demo mode on the Queue Settings page.
 
 **IMPORTANT:**  Once you are sure the CloudFlare Adapter is working as expected, remove the Client-Side JavaScript Adapter tag from your pages if you were using it, and also remove any Server-Side Adapter code from your origin server if you had already installed it.
 
-**IMPORTANT:**  Responses that contain a `Location:` header or a `Set-Cookie` header from the Adapter must not be cached!  You can check which cache-control headers are present using your browser's Inspector Network Tab.  The Adapter will set a Cache-Control header to disable browser and CloudFlare caching if it sets a cookie or sends a redirect - but you must not override these with your own code or framework.
+**IMPORTANT:**  Responses that contain a `Location:` header or a `Set-Cookie` header from the Adapter must not be cached!  You can check which cache-control headers are present using your browser's Inspector Network Tab.  The Adapter will set a `Cache-Control` header to disable browser and CloudFlare caching if it sets a cookie or sends a redirect - but you must not override these with your own Worker code or other framework.
 
 ### For maximum security
 
@@ -100,6 +102,6 @@ The CloudFlare Adapter contains multiple checks to prevent visitors bypassing th
 
 ## AND FINALLY
 
-If you already have a Worker that you are already using, then you will need to merge it with the code in worker.js.  If you want to run your Worker code instead of the Adapter, do it in addEventListener.  This will mean the Adapter does not run when your Worker code is run, which is probably not what you want.  If you want to run your Worker code as well as the Queue-Fair Adapter - which means the Adapter protects your pages and worker and is probably what you want - call it from the getFromCloudFlareCacheOrOrigin(request) function where indicated.
+If you already have a Worker that you are already using, then you may need to merge it with the code in `worker.js`.  If you want to run your Worker code *instead of* the Adapter, do it in `addEventListener()`.  This will mean the Adapter does *not* run when your Worker code is run, which is probably not what you want.  If you want to run your Worker code as well as the Queue-Fair Adapter - which means the Adapter protects your pages and worker and is probably what you want - call it from the `getFromCloudFlareCacheOrOrigin(request)` function where indicated.
 
 Remember we are here to help you! The integration process shouldn't take you more than an hour - so if you are scratching your head, ask us.  Many answers are contained in the Technical Guide too.  We're always happy to help!
