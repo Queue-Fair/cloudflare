@@ -1,5 +1,5 @@
 ---
-## Queue-Fair Free Virtual Waiting Room for CloudFlare Network-Edge Adapter README & Installation Guide
+## Queue-Fair Free CloudFlare Virtual Waiting Room Network-Edge Adapter README & Installation Guide
 
 Queue-Fair can be added to any web server easily in minutes, and is a great way to get a free CloudFlare virtual waiting room, as Queue-Fair offers its own Free Tier, and the Adapter only users CloudFlare free plan features.  You will need a Queue-Fair account - please visit https://queue-fair.com/free-trial if you don't already have one.  You should also have received our Technical Guide.
 
