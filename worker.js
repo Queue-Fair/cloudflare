@@ -41,7 +41,15 @@ stripPassedString : true,
 // or consult the Adapter server (safe mode).The recommended value is "safe".
 // If you change this to "simple", consider setting stripPassedString above to
 // false to make it easier for Google to crawl your pages.
-adapterMode : 'safe'
+adapterMode : 'safe',
+
+// When the queue is turned on and showing queue pages, always send a visitor 
+// from the front of the queue to a URL on your site starting "https://"
+// even if Cloudflare has told us that they wanted a URL starting "http://",
+// which can happen with some Cloudflare set-ups involving multiple 
+// reverse proxies.  Setting is only active if Dynamic Targeting is in use.
+// Leave this set to true if your whole site is protected by https.
+alwaysHTTPS : true
 
 };
 
@@ -69,6 +77,7 @@ addEventListener("fetch", (event) => {
 /****** You should not need to modify anything below this line ******/
 
 async function handleRequest(req) {
+ 
   try {
     var service = new QueueFairService(req);
     const adapter = new QueueFairAdapter(config, service);
@@ -971,13 +980,21 @@ class QueueFairAdapter {
     }
 
     // simple mode.
-    let url = this.protocol + '://' + queue.queueServer + '/' + queue.name + '?target=' + encodeURIComponent(this.url);
+    let url = this.protocol + '://' + queue.queueServer + '/' + queue.name + '?target=' + this.makeTarget();
 
     url = this.appendVariant(queue, url);
     url = this.appendExtra(queue, url);
     if (this.d) this.log('Redirecting to adapter server ' + url);
     this.redirectLoc = url;
     this.redirect();
+  }
+
+  makeTarget() {
+    if(!this.config.alwaysHTTPS || !this.url.startsWith("http://")) {
+      return encodeURIComponent(this.url);
+    }
+
+    return encodeURIComponent("https://"+this.url.substring("http://".length));
   }
 
   /** appends ? or & appropriately.
@@ -1101,7 +1118,7 @@ class QueueFairAdapter {
         const winLoc = this.url;
         if (this.adapterQueue.dynamicTarget != 'disabled') {
           queryParams+='target=';
-          queryParams+=encodeURIComponent(winLoc);
+          queryParams+=this.makeTarget();
         }
         if (this.uid != null) {
           if (queryParams != '') {
