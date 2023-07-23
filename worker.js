@@ -49,7 +49,13 @@ adapterMode : 'safe',
 // which can happen with some Cloudflare set-ups involving multiple 
 // reverse proxies.  Setting is only active if Dynamic Targeting is in use.
 // Leave this set to true if your whole site is protected by https.
-alwaysHTTPS : true
+alwaysHTTPS : true,
+
+// When enabled the URL of any visitor request that results in an Adapter call to 
+// the Queue Server cluster is sent to the cluster for logging, which is occasionally
+// useful for investigations.  Only applies to SAFE mode.
+// Should be set to false for production systems.
+sendURL : false
 
 };
 
@@ -970,6 +976,11 @@ class QueueFairAdapter {
 
       url += '&identifier=';
       url += encodeURIComponent(this.processIdentifier(this.userAgent));
+
+      if(this.config.sendURL) {
+        url+= '&url=';
+        url+= encodeURIComponent(this.url);
+      }
 
       if (this.d) this.log('Adapter URL ' + url);
       this.consultingAdapter = true;
