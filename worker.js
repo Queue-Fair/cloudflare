@@ -55,7 +55,20 @@ alwaysHTTPS : true,
 // the Queue Server cluster is sent to the cluster for logging, which is occasionally
 // useful for investigations.  Only applies to SAFE mode.
 // Should be set to false for production systems.
-sendURL : false
+sendURL : true,
+
+// An array of commonly used file extensions on which the Adapter will automatically
+// NOT Match. Equivalent to AND Path Does Not Contain .xxx in the 
+// Portal Activation Rules.  Useful as Cloudflare does not appear to 
+// support excluding file types in Routes, and we recommend you restrict the Adapter
+// to Page requests as much as possible.  Note that .xml and .json are on the list - occasionally.
+// customers do want to queue people requesting these files. Set to null or an empty array
+// to disable completely.
+excludeFileTypes : [ "json", "xml", "css", "js", "webmanifest", "txt",  //static file types
+  "jpeg", "jpg", "gif", "png", "webp", "svg", "bmp", //Image types
+  "mpeg","mpg","mp4","wav","mp3","pdf",  //media types
+  "woff","woff2","ttf","eot"  //font types
+]
 
 };
 
@@ -888,6 +901,10 @@ class QueueFairAdapter {
         if (this.d) this.log('ERROR: Settings not set.');
         return;
       }
+      if(this.isExclude()) {
+        if (this.d) this.log('URL excluded by file type.');
+        return;
+      }
       const queues=this.settings.queues;
       if (!queues || !queues[0]) {
         if (this.d) this.log('No queues found.');
@@ -943,6 +960,33 @@ class QueueFairAdapter {
         this.finish();
       }
     }
+  }
+
+  /** Is this an excluded file type? */
+  isExclude() {
+    if(typeof config.excludeFileTypes === "undefined" 
+      || config.excludeFileTypes == null 
+      || config.excludeFileTypes.length == 0) {
+      return false;
+    };
+
+    const rule = {
+      "component": "Path",
+      "match": "Contain",
+      "value": "NOMATCH",
+      "caseSensitive": true,
+    };
+
+    const comp = this.extractComponent(rule, this.url);
+
+    for(var i = 0; i < config.excludeFileTypes.length; i++) {
+      rule.value = "."+config.excludeFileTypes[i];
+      if(this.isRuleMatchWithValue(rule, comp)) {
+        return true;
+      }
+    };
+
+    return false;
   }
 
   /** Launches a call to the Adapter Servers
