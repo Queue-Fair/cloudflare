@@ -46,7 +46,7 @@ As soon as you see it in the left nav, select **KV** (it's underneath Workers->O
 
 **3.** Select **Workers** from the left nav again.  Hit the blue **Create Worker** button.  You can name the service anything you like - these instructions assume you name it `queue-fair-adapter`.  It will come up with some default code, which is fine.  Hit **Deploy**.
 
-**4.** CloudFlare will create your new worker.  Hit **Configure Worker**.  You'll start on the **Metrcs** tab.  Go to the **Settings** tab, then **Variables** on the left, scroll down to **KV Namespace Bindings** and hit **Add Binding**.  For Variable Name, this must be `QUEUE_FAIR_STORAGE`.  For KV Namespace, enter the name you chose in Step 2 (probably `queue-fair`).  Hit the blue **Save & Deploy** button.
+**4.** CloudFlare will create your new worker.  Hit **Configure Worker**.  You'll start on the **Metrics** tab.  Go to the **Settings** tab, then **Variables** on the left, scroll down to **KV Namespace Bindings** and hit **Add Binding**.  For Variable Name, this must be `QUEUE_FAIR_STORAGE`.  For KV Namespace, enter the name you chose in Step 2 (probably `queue-fair`).  Hit the blue **Save & Deploy** button.
 
 **5.** Hit the blue **Quick edit** button towards the top of the page. Copy and paste the contents of `worker.js` into the code editor on the left of the page, COMPLETELY REPLACING the few lines of code that are already there.  You can do this with CTRL-A to Select All and then CTRL-V to paste.
 
