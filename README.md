@@ -40,7 +40,7 @@ Here's how to add Queue-Fair to your CloudFlare implementation.
 
 **1.** Download the latest release of this distribution and unzip it.  You only need one file, `worker.js`.
 
-**2.** The Queue-Fair CloudFlare adapter uses KV storage for efficient operation.  To create the KV storage namespace that the Adapter will use, log in to CloudFlare.  Select **Workers & Pages** from the left nav.  If you've never set up a CloudFlare Worker before, you may be asked to set up a custom Cloudflare Workers subdomain.  You can shoose any subdomain you like - the only requirement is that no-one else has the same subdomain.  So, if you are asked to set up a custom CloudFlare Workers subdomain, pick a subdomain and then **Set Up**, and you probably want the Free plan.  
+**2.** The Queue-Fair CloudFlare adapter uses KV storage for efficient operation.  To create the KV storage namespace that the Adapter will use, log in to CloudFlare.  Select **Workers & Pages** from the left nav.  If you've never set up a CloudFlare Worker before, you may be asked to set up a custom Cloudflare Workers subdomain.  You can choose any subdomain you like - the only requirement is that no-one else has the same subdomain.  So, if you are asked to set up a custom CloudFlare Workers subdomain, pick a subdomain and then **Set Up**, and you probably want the Free plan.  
 
 As soon as you see it in the left nav, select **KV** (it's underneath Workers->Overview), then the blue **Create Namespace** button.  You can call the namespace anything you like - these instructions assume you name it `queue-fair`. Hit the blue **Add** button once you've entered a name.
 
