@@ -2,25 +2,25 @@ const config = {
 // Your Account Secret is shown on the Your Account page of
 // the Queue-Fair Portal.If you change it there, you must
 // change it here too.
-accountSecret : 'DELETE THIS TEXT AND REPLACE WITH YOUR ACCOUNT SECRET',
+  accountSecret : 'DELETE THIS TEXT AND REPLACE WITH YOUR ACCOUNT SECRET',
 
 // The System Name of your account from the Your Account page
 // of the Queue-Fair Portal.
-account : 'DELETE THIS TEXT AND REPLACE WITH YOUR ACCOUNT SYSTEM NAME',
+  account : 'DELETE THIS TEXT AND REPLACE WITH YOUR ACCOUNT SYSTEM NAME',
 
 // Leave this set as is
-filesServer : 'files.queue-fair.net',
+  filesServer : 'files.queue-fair.net',
 
 // Time limit for Passed Strings to be considered valid,
 // before and after the current time
-queryTimeLimitSeconds : 30,
+  queryTimeLimitSeconds : 30,
 
 // Valid values are true, false, or an "IP_address".
-debug : false,
+  debug : false,
 
 // How long to wait in seconds for network reads of config
 // or Adapter Server (safe mode only)
-readTimeout : 5,
+  readTimeout : 5,
 
 // How long a cached copy of your Queue-Fair settings will be kept before
 // downloading a fresh copy. Set this to 0 if you are updating your settings in
@@ -28,20 +28,20 @@ readTimeout : 5,
 // to set it back to at least 5 again when you are finished to reduce CloudFlare costs.
 // NOTE: If you set this to one minute or less in a production environment, you will
 // exceed the CloudFlare free plan KV limit of 1000 writes per day!
-settingsCacheLifetimeMinutes : 5,
+  settingsCacheLifetimeMinutes : 5,
 
 // Whether or not to strip the Passed String from the URL
 // that the Visitor sees on return from the Queue or Adapter servers
 // (simple mode) - when set to true causes one additinal HTTP request
 // to CloudFlare but only on the first matching visit from a particular
 // visitor. The recommended value is true.
-stripPassedString : true,
+  stripPassedString : true,
 
 // Whether to send the visitor to the Adapter server for counting (simple mode),
 // or consult the Adapter server (safe mode).The recommended value is "safe".
 // If you change this to "simple", consider setting stripPassedString above to
 // false to make it easier for Google to crawl your pages.
-adapterMode : 'safe',
+  adapterMode : 'safe',
 
 // When the queue is turned on and showing queue pages, always send a visitor 
 // from the front of the queue to a URL on your site starting "https://"
@@ -49,13 +49,13 @@ adapterMode : 'safe',
 // which can happen with some Cloudflare set-ups involving multiple 
 // reverse proxies.  Setting is only active if Dynamic Targeting is in use.
 // Leave this set to true if your whole site is protected by https.
-alwaysHTTPS : true,
+  alwaysHTTPS : true,
 
 // When enabled the URL of any visitor request that results in an Adapter call to 
 // the Queue Server cluster is sent to the cluster for logging, which is occasionally
 // useful for investigations.  Only applies to SAFE mode.
 // Should be set to false for production systems.
-sendURL : true,
+  sendURL : true,
 
 // An array of commonly used file extensions on which the Adapter will automatically
 // NOT Match. Equivalent to AND Path Does Not Contain .xxx in the 
@@ -68,7 +68,7 @@ excludeFileTypes : [ "json", "xml", "css", "js", "webmanifest", "txt",  //static
   "jpeg", "jpg", "gif", "png", "webp", "svg", "bmp", //Image types
   "mpeg","mpg","mp4","wav","mp3","pdf",  //media types
   "woff","woff2","ttf","eot"  //font types
-]
+  ]
 
 };
 
@@ -78,7 +78,7 @@ excludeFileTypes : [ "json", "xml", "css", "js", "webmanifest", "txt",  //static
 async function getFromCloudFlareCacheOrOrigin(request) {
   //If you already have Worker code that you need to merge,
   //this is the place to call it.
-  
+
   //Otherwise, get a response from the CloudFlare cache or origin.
   return fetch(request);
 }
@@ -86,17 +86,17 @@ async function getFromCloudFlareCacheOrOrigin(request) {
 addEventListener("fetch", (event) => { 
   if(!event.request || !event.request.url) {
       //Requests with no URL have default CloudFlare handling.
-      return;
+    return;
   }
   event.respondWith(
     handleRequest(event.request)
-  );
+    );
 });
 
 /****** You should not need to modify anything below this line ******/
 
 async function handleRequest(req) {
- 
+
   try {
     var service = new QueueFairService(req);
     const adapter = new QueueFairAdapter(config, service);
@@ -150,21 +150,21 @@ async function respond(service, req) {
     for(var cname in service.respCookies) {
       const cookie = service.respCookies[cname];
       const header = cname + "=" + cookie.value 
-        + ";Max-Age="+cookie.maxAge
-        + ";Expires="+cookie.expire.toUTCString()
-        + ";Path="+cookie.path
-        + (cookie.cookieDomain ? ";Domain="+cookieDomain : "")
-        + (service.isSecure ?  ";Secure" : "")
-        + (cookie.sameSite ?  ";SameSite=none" : "");
+      + ";Max-Age="+cookie.maxAge
+      + ";Expires="+cookie.expire.toUTCString()
+      + ";Path="+cookie.path
+      + (cookie.cookieDomain ? ";Domain="+cookieDomain : "")
+      + (service.isSecure ?  ";Secure" : "")
+      + (cookie.sameSite ?  ";SameSite=none" : "");
       resp.headers.append("set-cookie",header);
     }
     
     return resp;
   } catch (err) {
-      console.log("QF ERROR PROCESSING RESPONSE");
-      console.log(err);
+    console.log("QF ERROR PROCESSING RESPONSE");
+    console.log(err);
       //Show page.
-      return getFromCloudFlareCacheOrOrigin(req);
+    return getFromCloudFlareCacheOrOrigin(req);
   }
 }
 
@@ -185,7 +185,7 @@ class QueueFairService {
   constructor(req) {
     this.req= req;
     if(req.url.startsWith("https")) {
-        this.isSecure = true;
+      this.isSecure = true;
     }
     this.reqCookies = req.headers.get("cookie");
     if(this.reqCookies == null) {
@@ -195,11 +195,11 @@ class QueueFairService {
     const inter = this.reqCookies.split(';');
     this.reqCookies = {};
     for(var i in inter) {
-        const str = inter[i];
-        const j = str.indexOf("=");
-        const cname = decodeURIComponent(str.substring(0,j).trim());
-        const cvalue = decodeURIComponent(str.substring(j+1).trim());
-        this.reqCookies[cname] = cvalue;
+      const str = inter[i];
+      const j = str.indexOf("=");
+      const cname = decodeURIComponent(str.substring(0,j).trim());
+      const cvalue = decodeURIComponent(str.substring(j+1).trim());
+      this.reqCookies[cname] = cvalue;
     }
   }
 
@@ -271,7 +271,7 @@ class QueueFairService {
    */
   remoteAddr() {
     let ip = this.req.headers.get('x-forwarded-for')||
-          this.req.headers.get("CF-Connecting-IP");
+    this.req.headers.get("CF-Connecting-IP");
     if(ip == null) {
       return "255.255.255.0";
     }
@@ -417,7 +417,7 @@ class QueueFairAdapter {
       } else {
         if (this.d) {
           this.log('  Rule ' + (i+1) +
-          ': ' + ((ruleMatch) ? 'true' : 'false'));
+            ': ' + ((ruleMatch) ? 'true' : 'false'));
         }
         if (rule.operator == 'And') {
           state = (state && ruleMatch);
@@ -595,19 +595,19 @@ class QueueFairAdapter {
 
     var key;
     if(compiledSecrets[secret]) {
-        key = compiledSecrets[secret];
+      key = compiledSecrets[secret];
     } else {
-        const secretKeyData = encoder.encode(secret);
-        key = await crypto.subtle.importKey('raw',secretKeyData,
-                { name: 'HMAC', hash: 'SHA-256' },
-                    false,['sign']);
-        compiledSecrets[secret] =  key;
+      const secretKeyData = encoder.encode(secret);
+      key = await crypto.subtle.importKey('raw',secretKeyData,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,['sign']);
+      compiledSecrets[secret] =  key;
     }
     
     var mac = await crypto.subtle.sign('HMAC', key, encoder.encode(message));
     mac = [...new Uint8Array(mac)]
-      .map(x => x.toString(16).padStart(2, '0'))
-      .join('');
+    .map(x => x.toString(16).padStart(2, '0'))
+    .join('');
     return mac;
   }
 
@@ -639,7 +639,7 @@ class QueueFairAdapter {
    */
   async validateCookieWithQueue(queue, cookie) {
     return await this.validateCookie(queue.secret,
-        queue.passedLifetimeMinutes, cookie);
+      queue.passedLifetimeMinutes, cookie);
   }
 
 
@@ -669,12 +669,12 @@ class QueueFairAdapter {
       const check = cookie.substring(0, hpos);
 
       const checkHash = await this.createHash(secret,
-          this.processIdentifier(this.userAgent)+check);
+        this.processIdentifier(this.userAgent)+check);
 
       if (hash != checkHash) {
         if (this.d) {
           this.log('Cookie Hash Mismatch Given ' +
-          hash + ' Should be ' + checkHash);
+            hash + ' Should be ' + checkHash);
         }
 
         return false;
@@ -692,7 +692,7 @@ class QueueFairAdapter {
       if (tspos < this.time() - (passedLifetimeMinutes * 60)) {
         if (this.d) {
           this.log('Cookie timestamp too old ' +
-          (this.time() - tspos));
+            (this.time() - tspos));
         }
         return false;
       }
@@ -802,7 +802,7 @@ class QueueFairAdapter {
       const check = str.substring(qpos, hpos);
 
       const checkHash = await this.createHash(queue.secret,
-          this.processIdentifier(this.userAgent) + check);
+        this.processIdentifier(this.userAgent) + check);
 
       if (checkHash != queryHash) {
         if (this.d) this.log('Failed Hash '+checkHash);
@@ -913,42 +913,46 @@ class QueueFairAdapter {
       this.parsing=true;
       if (this.d) this.log('Running through queue rules');
       for (let i=0; i<queues.length; i++) {
-        const queue=queues[i];
-        if (this.passed[queue.name]) {
-          if (this.d) {
-            this.log('Already passed ' + queue.displayName +
-            ' ' + this.passed[queue.name]);
-          }
-          continue;
-        }
-        if (this.d) this.log('Checking '+queue.displayName);
-        if (this.isMatch(queue)) {
-          if (this.d) this.log('Got a match '+queue.displayName);
-          if (!await this.onMatch(queue)) {
-            if (this.consultingAdapter) {
-              return;
+        try {
+          const queue=queues[i];
+          if (this.passed[queue.name]) {
+            if (this.d) {
+              this.log('Already passed ' + queue.displayName +
+                ' ' + this.passed[queue.name]);
             }
+            continue;
+          }
+          if (this.d) this.log('Checking '+queue.displayName);
+          if (this.isMatch(queue)) {
+            if (this.d) this.log('Got a match '+queue.displayName);
+            if (!await this.onMatch(queue)) {
+              if (this.consultingAdapter) {
+                return;
+              }
+              if (!this.continuePage) {
+                return;
+              }
+              if (this.d) {
+                this.log('Found matching unpassed queue ' +
+                  queue.displayName);
+              }
+              if (this.config.adapterMode == 'simple') {
+                return;
+              } else {
+                continue;
+              }
+            }
+
             if (!this.continuePage) {
               return;
             }
-            if (this.d) {
-              this.log('Found matching unpassed queue ' +
-              queue.displayName);
-            }
-            if (this.config.adapterMode == 'simple') {
-              return;
-            } else {
-              continue;
-            }
-          }
-
-          if (!this.continuePage) {
-            return;
-          }
           // Passed
-          this.passed[queue.name] = true;
-        } else {
-          if (this.d) this.log('Rules did not match '+queue.displayName);
+            this.passed[queue.name] = true;
+          } else {
+            if (this.d) this.log('Rules did not match '+queue.displayName);
+          }
+        } catch (err) {
+          this.errorHandler(err);
         }
       }
       if (this.d) this.log('All queues checked.');
@@ -964,11 +968,11 @@ class QueueFairAdapter {
 
   /** Is this an excluded file type? */
   isExclude() {
-    if(typeof config.excludeFileTypes === "undefined" 
-      || config.excludeFileTypes == null 
-      || config.excludeFileTypes.length == 0) {
+    if(typeof config.excludeFileTypes === "undefined" ||
+      config.excludeFileTypes == null ||
+      config.excludeFileTypes.length == 0)
       return false;
-    };
+
 
     const rule = {
       "component": "Path",
@@ -995,7 +999,7 @@ class QueueFairAdapter {
   consultAdapter(queue) {
     if (this.d) {
       this.log('Consulting Adapter Server for queue ' +
-      queue.name +' for page '+this.url);
+        queue.name +' for page '+this.url);
     }
 
     this.adapterQueue = queue;
@@ -1142,7 +1146,7 @@ class QueueFairAdapter {
     try {
       if (this.d) {
         this.log('Got from adapter ' +
-        JSON.stringify(this.adapterResult));
+          JSON.stringify(this.adapterResult));
       }
       if (!this.adapterResult) {
         if (this.d) this.log('ERROR: onAdapter() called without result');
@@ -1158,7 +1162,7 @@ class QueueFairAdapter {
           this.service.setCookie('QueueFair-Store-' +
             this.config.account, 'u:' +
             this.uid, this.adapterResult.cookieSeconds,
-          '/', this.adapterQueue.cookieDomain);
+            '/', this.adapterQueue.cookieDomain);
         }
       }
 
@@ -1218,7 +1222,7 @@ class QueueFairAdapter {
           }
           if(this.d) this.log("queueDomain applied "+redirectLoc);
         }
-        
+
         if (queryParams!=='') {
           redirectLoc=redirectLoc+'?'+queryParams;
         }
@@ -1241,13 +1245,13 @@ class QueueFairAdapter {
 
       // SafeGuard etc
       this.setCookie(this.adapterResult.queue,
-          this.adapterResult.validation,
-          this.adapterQueue.passedLifetimeMinutes*60,
-          this.adapterQueue.cookieDomain);
+        this.adapterResult.validation,
+        this.adapterQueue.passedLifetimeMinutes*60,
+        this.adapterQueue.cookieDomain);
 
       if (this.d) {
         this.log('Marking ' +
-        this.adapterResult.queue + ' as passed by adapter.');
+          this.adapterResult.queue + ' as passed by adapter.');
       }
 
       this.passed[this.adapterResult.queue]=true;
@@ -1281,13 +1285,13 @@ class QueueFairAdapter {
   setCookie(queueName, value, lifetimeSeconds, cookieDomain) {
     if (this.d) {
       this.log('Setting cookie for ' +
-      queueName + ' to ' + value + ' on ' + cookieDomain);
+        queueName + ' to ' + value + ' on ' + cookieDomain);
     }
 
     const cookieName=QueueFairAdapter.cookieNameBase+queueName;
 
     this.service.setCookie(cookieName, value,
-        lifetimeSeconds, '/', cookieDomain);
+      lifetimeSeconds, '/', cookieDomain);
 
     if (lifetimeSeconds <= 0) {
       return;
@@ -1354,7 +1358,7 @@ class QueueFairAdapter {
     if (QueueFairAdapter.memSettings != null &&
       QueueFairAdapter.lastMemSettingsRead != -1 &&
       Date.now() - QueueFairAdapter.lastMemSettingsRead <
-        this.config.settingsCacheLifetimeMinutes * 60 *1000) {
+      this.config.settingsCacheLifetimeMinutes * 60 *1000) {
       // Old settings are good.
       if (this.d) this.log('Using mem cached settings.');
       await this.gotSettings(QueueFairAdapter.memSettings);
@@ -1366,9 +1370,9 @@ class QueueFairAdapter {
     if(storedSettings != null) {
       try {
         const json = JSON.parse(storedSettings);
-        const stamp = json.stamp;  
+        const stamp = json.stamp;
         if(Date.now() - stamp < this.config.settingsCacheLifetimeMinutes * 60 *1000) {
-          //OK use these settings.
+            //OK use these settings.
           if(this.d) this.log("using settings from KV");
           QueueFairAdapter.memSettings = json;
           QueueFairAdapter.lastMemSettingsRead = Date.now();
@@ -1377,13 +1381,13 @@ class QueueFairAdapter {
         }
         if(this.d) this.log("KV settings are too old");
       } catch (err) {
-        //Non-fatal.
+          //Non-fatal.
         console.log(err);
       }
     }
 
     if (QueueFairAdapter.gettingSettings &&
-        this.settingsCounter < this.config.readTimeout) {
+      this.settingsCounter < this.config.readTimeout) {
       if (this.d) this.log('Waiting for settings.');
       this.settingsCounter++;
       //Does not require await as result unused.
@@ -1396,10 +1400,9 @@ class QueueFairAdapter {
 
     //gotSettingsStr does not require await here as result unused.
     this.loadURL('https://files.queue-fair.net/' +
-      this.config.account +
-      '/' +
-      this.config.accountSecret +
-      '/queue-fair-settings.json', (data) => this.gotSettingsStr(data));
+    this.config.account + '/' +
+    this.config.accountSecret +
+    '/queue-fair-settings.json', (data) => this.gotSettingsStr(data));
   }
 
   /** Retrieve the query string from the url.
@@ -1464,7 +1467,7 @@ class QueueFairAdapter {
         if ('' != queueCookie) {
           if (this.d) {
             this.log('Query validation failed but we have cookie ' +
-            queueCookie);
+              queueCookie);
           }
 
           if (await this.validateCookieWithQueue(queue, queueCookie)) {
@@ -1475,16 +1478,16 @@ class QueueFairAdapter {
         } else {
           if (this.d) {
             this.log('Bad queueCookie for ' +
-            queueName + ' ' + queueCookie);
+              queueName + ' ' + queueCookie);
           }
         }
 
         const loc = this.protocol + '://' + queue.queueServer + '/' +
-          queue.name + '?qfError=InvalidQuery';
+        queue.name + '?qfError=InvalidQuery';
 
         if (this.d) {
           this.log('Query validation failed - ' +
-          ' redirecting to error page.');
+            ' redirecting to error page.');
         }
         this.redirectLoc = loc;
         this.redirect();
@@ -1497,10 +1500,10 @@ class QueueFairAdapter {
       this.passedString = value;
 
       this.setCookie(
-          queueName,
-          value,
-          queue.passedLifetimeMinutes * 60,
-          queue.cookieDomain);
+        queueName,
+        value,
+        queue.passedLifetimeMinutes * 60,
+        queue.cookieDomain);
       if (!this.continuePage) {
         return;
       }
