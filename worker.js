@@ -153,7 +153,7 @@ async function respond(service, req) {
       + ";Max-Age="+cookie.maxAge
       + ";Expires="+cookie.expire.toUTCString()
       + ";Path="+cookie.path
-      + (cookie.cookieDomain ? ";Domain="+cookieDomain : "")
+      + (cookie.cookieDomain ? ";Domain="+cookie.cookieDomain : "")
       + (service.isSecure ?  ";Secure" : "")
       + (cookie.sameSite ?  ";SameSite=none" : "");
       resp.headers.append("set-cookie",header);
