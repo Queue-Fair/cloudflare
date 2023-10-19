@@ -36,6 +36,8 @@ Thus the CloudFlare Adapter prevents visitors from skipping the queue by disabli
 
 These instructions assume you already have a CloudFlare account with an origin website already set up.  If that's not the case, you should set one up before proceeding and test that it is working with both https and http requests.  The instructions below assume you don't already have any CloudFlare workers set up on your site already - if that's not the case read the And Finally section below before making any changes.
 
+*IMPORTANT:*  In order for CloudFlare to be able to run the Adapter, the requests must run through the CloudFlare proxy.   This means at least one of the DNS records, usually your A record, in the CloudFlare DNS settings for your site must have the orange Proxied status, not the grey DNS Only.  If you are not seeing any requests to the Adapter at all, this is probably why.  You can enable the Proxied status by hitting Edit next to the record, then move the slider, then hit Save.  If you are changing this, we recommend you do it out of office hours.  It may take the Time to Live on your old setting for the change to become apparent.
+
 Here's how to add Queue-Fair to your CloudFlare implementation. 
 
 **1.** Download the latest release of this distribution and unzip it.  You only need one file, `worker.js`.
