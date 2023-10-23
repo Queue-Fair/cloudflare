@@ -523,7 +523,13 @@ class QueueFairAdapter {
       } else {
         ret=true;
       }
-    }
+    } else if (rule.match == "RegExp") {
+		  if(typeof comp == 'undefined' || comp === null) {
+			  comp = "";
+			}
+			var r = new RegExp(test);
+			ret = r.test(comp);
+		}
 
     if (rule.negate) {
       ret=!ret;
