@@ -65,7 +65,7 @@ const config = {
 // customers do want to queue people requesting these files. Set to null or an empty array
 // to disable completely.
 excludeFileTypes : [ "json", "xml", "css", "js", "webmanifest", "txt",  //static file types
-  "jpeg", "jpg", "gif", "png", "webp", "svg", "bmp", //Image types
+  "jpeg", "jpg", "gif", "png", "webp", "svg", "bmp", "ico", //Image types
   "mpeg","mpg","mp4","wav","mp3","pdf",  //media types
   "woff","woff2","ttf","eot"  //font types
   ]
