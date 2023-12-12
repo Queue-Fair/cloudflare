@@ -1488,8 +1488,13 @@ class QueueFairAdapter {
           }
         }
 
+        let target = this.url;
+        const i = target.indexOf("qfqid=");
+        if(i != -1) {
+          target = target.substring(0,i);
+        }
         const loc = this.protocol + '://' + queue.queueServer + '/' +
-        queue.name + '?qfError=InvalidQuery';
+        queue.name + '?qfError=InvalidQuery&target='+encodeURIComponent(target);
 
         if (this.d) {
           this.log('Query validation failed - ' +
