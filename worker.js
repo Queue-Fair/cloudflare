@@ -95,10 +95,39 @@ addEventListener("fetch", (event) => {
 
 /****** You should not need to modify anything below this line ******/
 
+function isBadIANA(ip) {
+	// Detect invalid Source IPs according to IANA special registry.  
+	// Not automatically blocked by Cloudflare.
+	if(!ip) return false;
+  
+	let i = ip.indexOf(":");
+	if(i != -1) {
+		if (ip.substring(0,i) != "2001") return false;
+		let j = ip.indexOf(":",i+1);
+		if (j == i+1) return false;
+		let s = ip.substring(i+1,j).toLowerCase();
+		return (s == "db8" || s == "0db8");
+	}
+
+	i = ip.indexOf(".");
+	if(i == -1) return false;
+	if(ip == "192.0.0.170" || ip == "192.0.0.171"
+		|| ip.indexOf("192.0.2.") == 0 || ip.indexOf("198.51.100.") == 0
+		|| ip.indexOf("203.0.113.") == 0) return true;
+
+	return (parseInt(ip.substring(0,i)) >= 240);
+}
+
 async function handleRequest(req) {
 
   try {
     var service = new QueueFairService(req);
+
+    if(isBadIANA(service.remoteAddr())) {
+      service.redirect("https://queue-fair.com/dcblock?ip="+service.remoteAddr());
+      return await respond(service,req);
+    }
+    
     const adapter = new QueueFairAdapter(config, service);
     adapter.url = req.url;
     adapter.userAgent = req.headers.get("user-agent") || "user-agent not set";
