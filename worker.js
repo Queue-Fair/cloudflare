@@ -308,8 +308,9 @@ class QueueFairService {
     ip = ip.split(',')[0];
   
     // in case the ip returned in a format: "::ffff:127.xxx.xxx.xxx"
-    ip = ip.split(':').slice(-1);
-  
+    if(ip.toLowerCase().indexOf("::ffff:") == 0) {
+      ip = ip.split(':').slice(-1);
+    }
     return ip;
   }
 };
