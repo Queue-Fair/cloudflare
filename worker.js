@@ -299,16 +299,17 @@ class QueueFairService {
    * @return {string} the IP address of the visitor
    */
   remoteAddr() {
-    let ip = this.req.headers.get('x-forwarded-for')||
-    this.req.headers.get("CF-Connecting-IP");
-    if(ip == null) {
-      return "255.255.255.0";
-    }
+    let ip = this.req.headers.get("CF-Connecting-IPv6") 
+             || this.req.headers.get('x-forwarded-for') 
+             || this.req.headers.get("CF-Connecting-IP");
+	  
+    if(!ip) return "255.255.255.0";
+      
     ip = ip.split(',')[0];
-
+  
     // in case the ip returned in a format: "::ffff:127.xxx.xxx.xxx"
-    //ip = ip.split(':').slice(-1);
-
+    ip = ip.split(':').slice(-1);
+  
     return ip;
   }
 };
