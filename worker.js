@@ -360,6 +360,9 @@ class QueueFairAdapter {
   timeout = null;
   finished = false;
 
+  // For error reporting on InvalidQuery
+  reason = null;
+
   /** Convenience method
    * @param {Object} config configuration for the adapter.
    * @param {Object} service a service encapsulating low level functions.
@@ -766,6 +769,25 @@ class QueueFairAdapter {
     return Date.now()/1000;
   }
 
+  /** Convenience method for processing an array of same-named 
+   * query string parameters.
+   * @return {String} the last paramater value, or null if not found.
+   */
+  procParam(w,msg) {
+    if (!w || !w.length) {
+      this.reason = msg;
+      if (this.d) this.log(msg);
+      return null;
+    }
+    return w[w.length - 1];
+  }
+  
+  reportReason(reason) {
+    this.reason = reason;
+    if(this.d) this.log(reason);
+    return false;
+  }
+
   /** Checks if a Passed String is valid.  MODIFIED async
    * @param {Object} queue json
    * @return {boolean} whether it's valid or not.
@@ -776,80 +798,72 @@ class QueueFairAdapter {
       if (i == -1) {
         return false;
       }
-
+  
       let str = this.url.substring(i);
       if ('?' == str) {
         return false;
       }
-
-      str = str.substring(1);
-      const hpos = str.lastIndexOf('qfh=');
-
-      if (hpos == -1) {
-        if (this.d) this.log('No Hash In Query');
-        return false;
-      }
-
+  
+      const q = new URLSearchParams(str);
+  
+      let qfh = q.getAll("qfh");
+  
+      qfh = this.procParam(qfh, 'No Hash In Query');
+      if(!qfh) return false;
+  
       if (this.d) this.log('Validating Passed Query ' + str);
-
-      const qpos = str.lastIndexOf('qfqid=');
-
-      if (qpos === -1) {
-        if (this.d) this.log('No Queue Identifier');
-        return false;
+  
+      let qfqid = q.getAll("qfqid");
+      let qfts = q.getAll("qfts");
+      let qfa = q.getAll("qfa");
+      let qfq = q.getAll("qfq");
+      let qfpt = q.getAll("qfpt");
+  
+      qfqid = this.procParam(qfqid,'No Queue Identifier');
+      if(!qfqid) return false;
+  
+      qfts = this.procParam(qfts,'No Timestamp');
+      if(!qfts) return false;
+  
+      qfa = this.procParam(qfa,'No Account');
+      if(!qfa) return false;
+  
+      qfq = this.procParam(qfq,'No Queue');
+      if(!qfa) return false;
+  
+      qfpt = this.procParam(qfpt,'No PassType');
+      if(!qfpt) return false;
+  
+      qfts = parseInt(qfts);
+  
+      if (!Number.isInteger(qfts)) {
+        return this.reportReason('Timestamp Not Numeric');
+      }
+  
+      if (qfts > this.time() + this.config.queryTimeLimitSeconds) {
+        return this.reportReason('Too Late');
       }
 
-      const q = this.strToPairs(str);
-
-      const queryHash = q['qfh'];
-
-      if (!queryHash) {
-        if (this.d) this.log('Malformed hash');
-        return false;
+      if (qfts < this.time() - this.config.queryTimeLimitSeconds) {
+        return this.reportReason('Too Early');
       }
-
-      // const queryQID = q['qfqid'];
-      let queryTS = q['qfts'];
-      // const queryAccount = q['qfa'];
-      // const queryQueue = q['qfq'];
-      // const queryPassType = q['qfpt'];
-
-      if (queryTS == null) {
-        if (this.d) this.log('No Timestamp');
-        return false;
-      }
-
-      queryTS = parseInt(queryTS);
-
-      if (!Number.isInteger(queryTS)) {
-        if (this.d) this.log('Timestamp '+queryTS+' Not Numeric');
-        return false;
-      }
-
-      if (queryTS > this.time() + this.config.queryTimeLimitSeconds) {
-        if (this.d) this.log('Too Late ' + queryTS + ' ' + this.time());
-        return false;
-      }
-
-      if (queryTS < this.time() - this.config.queryTimeLimitSeconds) {
-        if (this.d) this.log('Too Early ' + queryTS + ' ' + this.time());
-        return false;
-      }
-
-      const check = str.substring(qpos, hpos);
-
+  
+      const check = "qfqid=" + qfqid + "&qfts=" + qfts + "&qfa=" + qfa
+                     + "&qfq=" + qfq + "&qfpt=" + qfpt + "&";
+  
       const checkHash = await this.createHash(queue.secret,
-        this.processIdentifier(this.userAgent) + check);
-
-      if (checkHash != queryHash) {
-        if (this.d) this.log('Failed Hash '+checkHash);
-        return false;
+      this.processIdentifier(this.userAgent) + check);
+  
+      if (checkHash != qfh) {
+      if (this.d) this.log('Failed Hash '+checkHash);
+        return this.reportReason('Failed Hash');
       }
-
+  
       return true;
+  
     } catch (err) {
       if (this.d) this.log('Query validation failed with error '+err);
-      return false;
+      return this.reportReason('Validation failed '+err.message);
     }
   }
 
@@ -1521,15 +1535,24 @@ class QueueFairAdapter {
 
         let target = this.url;
         const i = target.indexOf("qfqid=");
+        let remainder = null;
         if(i != -1) {
+          remainder = target.substring(i);
           target = target.substring(0,i);
         }
-        const loc = this.protocol + '://' + queue.queueServer + '/' +
-        queue.name + '?qfError=InvalidQuery&target='+encodeURIComponent(target);
-
+          
+        let loc = this.protocol + '://' + queue.queueServer + '/' +
+        queue.name + '?qfError=InvalidQuery';
+        if(this.reason) {
+          loc += '&reason='+encodeURIComponent(this.reason);
+        }
+        if(remainder) {
+          loc += '&remainder='+encodeURIComponent(remainder);
+        }
+        loc += '&target='+encodeURIComponent(target);
         if (this.d) {
           this.log('Query validation failed - ' +
-            ' redirecting to error page.');
+              ' redirecting to error page.');
         }
         this.redirectLoc = loc;
         this.redirect();
