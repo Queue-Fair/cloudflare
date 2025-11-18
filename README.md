@@ -64,7 +64,7 @@ As soon as you see it in the left nav, select **KV** (it's underneath **Storage 
 
 **11.** To enable the Worker on your site, **Add route**, and it's `*mysite.com/*` for the Route, for **Worker** it's whatever name you chose in Step 3 (probably `queue-fair-adapter`).  If you see an **Environment** setting, it should be `Production`, and we recommend you change **Request limit failure mode** from `Fail closed` to `Fail open` if you are on the CloudFlare Free plan.  This will mean that if your 100,000 free worker requests per day quota is exeeded, your site will still display - it will just be unprotected by Queue-Fair once the limit is reached.
 
-NOTE: The stars matter!  Without a star at the beginning, a malicious visitor could add an extra subdomain and potentially get through.  If you don't have the star at the end, then only the specific path you give Cloudflare will have the Adapter and no other URLs, such that a visitor could add a query string parameter and potentially get through, so always **start and end** your Workers Routes with a *.
+NOTE: The stars matter!  Without a star at the beginning, a malicious visitor could add an extra subdomain and potentially get through.  If you don't have the star at the end, then only the specific path you give will have the Adapter and no other URLs, such that a visitor could add a query string parameter and potentially get through, so always **start and end** your Workers Routes with `*`.
   
 **12.** Hit **Save** when you are finished with the **Add route** dialog.  
 
